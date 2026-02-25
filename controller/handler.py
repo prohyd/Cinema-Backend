@@ -1,6 +1,6 @@
 from fastapi import FastAPI, Depends
 from sqlalchemy.orm import Session
-from model.models_for_cinema import MoviesForAPICreate
+from controller.models_for_API import MoviesForAPICreate
 from repository.create_connection_to_bd import get_bd
 from repository.implementation_repository_models import SqlMoviesRepository
 from controller.config_log import setup_logging
@@ -10,6 +10,7 @@ import uvicorn
 setup_logging()
 
 app = FastAPI()
+
 
 
 @app.get("/cinema/{movie_id_input}")

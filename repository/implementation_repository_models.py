@@ -1,4 +1,4 @@
-from model.models_for_cinema import MoviesForAPI, MoviesForAPIResponse
+from model.domain import MoviesForAPI
 from repository.models_for_sql import Movies
 from repository.interface_repository_model import MoviesRepository
 from sqlalchemy.orm import Session
