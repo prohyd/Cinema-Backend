@@ -1,79 +1,26 @@
-from fastapi import FastAPI,Depends
-from sqlalchemy.orm import Session
-from model.models_for_cinema import MoviesForAPICreate,MoviesForAPIResponse
-from repository.create_connection_to_bd import get_bd
-from repository.worker import create_movie,get_movie,get_cursor_movie,delete_movie,update_movie
-from controller.config_log import setup_logging
-from loguru import logger
 import uvicorn
-setup_logging()
+import yaml
+from pathlib import Path
 
-app = FastAPI()
+BASE_DIR = Path(__file__).resolve().parent.parent
 
+def load_config(path: str = BASE_DIR / "config.yml") -> dict:
+    with open(path, "r", encoding="utf-8") as f:
+        return yaml.safe_load(f)
 
-
-@app.get("/cinema/{movie_id_input}", response_model=MoviesForAPIResponse)
-def getCinema(movie_id_input: int, db: Session = Depends(get_bd)):
-    logger.info("GET /cinema/{} запрос получен", movie_id_input)
-
-    cinema = get_movie(db, movie_id_input)
-
-    logger.info("Кинотеатр id={} успешно найден", movie_id_input)
-    return cinema
-
-
-@app.get("/cinema/", response_model=list[MoviesForAPIResponse])
-def getCursor(skip: int, limit: int, db: Session = Depends(get_bd)):
-    logger.info("GET /cinema/ запрос: skip={}, limit={}", skip, limit)
-
-    movies = get_cursor_movie(db, skip, limit)
-
-    logger.info("Найдено {} кинотеатров", len(movies))
-    return movies
-
-
-@app.post("/cinema/", response_model=MoviesForAPIResponse)
-def CreateCinema(movie_create: MoviesForAPICreate, db: Session = Depends(get_bd)):
-    logger.info(
-        "POST /cinema/ создание кинотеатра: name={}, rating={}",
-        movie_create.name_movie,
-        movie_create.rating
-    )
-
-    cinema = create_movie(
-        db,
-        movie_create.name_movie,
-        movie_create.rating,
-        movie_create.description
-    )
-
-    logger.success("Кинотеатр успешно создан: id={}", cinema.idcinema)
-    return cinema
-
-
-@app.put("/cinema/{movie_id_input}", response_model=MoviesForAPIResponse)
-def UpdateCinema(movie_id_input: int, columns: str, new_value, db: Session = Depends(get_bd)):
-    logger.info(
-        "PUT /cinema/{} обновление: поле={}, новое значение={}",
-        movie_id_input,
-        columns,
-        new_value
-    )
-
-    updated = update_movie(db, movie_id_input, columns, new_value)
-
-    logger.success("Кинотеатр id={} успешно обновлён", movie_id_input)
-    return updated
-
-
-@app.delete("/cinema/{movie_id_input}")
-def DeleteCinema(movie_id_input: int, db: Session = Depends(get_bd)):
-    logger.info("DELETE /cinema/{} удаление", movie_id_input)
-
-    deleted = delete_movie(db, movie_id_input)
-
-    logger.success("Кинотеатр id={} успешно удалён", movie_id_input)
-    return {"status": "deleted", "cinema_id": movie_id_input}
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="127.0.0.1", port=8000)
+    config = load_config()
+
+    env = config["env"]
+
+    server_config = config["server"][env]
+    log_config = config["logging"][env]
+
+    uvicorn.run(
+        server_config["app"],
+        host=server_config["host"],
+        port=server_config["port"],
+        reload=server_config["reload"],
+        log_level=log_config["level"].lower()
+    )

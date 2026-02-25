@@ -1,12 +1,29 @@
 env: dev
 
+server:
+  dev:
+    app: handler:app
+    host: 127.0.0.1
+    port: 8000
+    reload: true
+
+  test:
+    app: main:app
+    host: 127.0.0.1
+    port: 8001
+    reload: false
+
+  prod:
+    app: main:app
+    host: 0.0.0.0
+    port: 8000
+    reload: false
+
 logging:
   dev:
     level: DEBUG
     console: true
     file: logs/dev.log
-    rotation: 5 MB
-    retention: 7 days
 
   test:
     level: WARNING
@@ -17,6 +34,3 @@ logging:
     level: INFO
     console: true
     file: logs/app.log
-    rotation: 10 MB
-    retention: 30 days
-    compression: zip
