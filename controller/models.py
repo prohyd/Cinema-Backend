@@ -1,5 +1,3 @@
-from email.policy import default
-
 from pydantic import BaseModel, ValidationError, field_validator, Field, ConfigDict
 
 

@@ -1,29 +1,26 @@
 from fastapi import FastAPI, Depends
 from uuid import UUID
-from controller.models_for_API import MovieCreate, MovieUpdate
-from repository.create_connection_to_bd import get_bd
-from repository.implementation_repository_models import SqlMoviesRepository
-from controller.config_log import setup_logging
-from repository.models_for_sql import Base
-from repository.create_connection_to_bd import engine
+from controller.models import MovieCreate, MovieUpdate
+from repository.create_connection import get_bd
+from repository.implementation_models import SqlMoviesRepository
 from loguru import logger
-import uvicorn
+from repository.models import Base
+from repository.create_connection import engine
 
-setup_logging()
 
-app = FastAPI()
+cinema_backend = FastAPI()
 
 
 def get_repository(db=Depends(get_bd)) -> SqlMoviesRepository:
     return SqlMoviesRepository(db)
 
 
-@app.on_event("startup")
+@cinema_backend.on_event("startup")
 def startup_event():
     Base.metadata.create_all(bind=engine)
 
 
-@app.get("/movies/{id}")
+@cinema_backend.get("/movies/{id}")
 def get_movie_handler(id: UUID, repository: SqlMoviesRepository = Depends(get_repository)):
     movie_get = repository.get_movie(id)
 
@@ -31,7 +28,7 @@ def get_movie_handler(id: UUID, repository: SqlMoviesRepository = Depends(get_re
     return movie_get
 
 
-@app.get("/movies/")
+@cinema_backend.get("/movies/")
 def get_movie_cursor_handler(limit: int, cursor: str | None = None,
                              repository: SqlMoviesRepository = Depends(get_repository)):
     movies_get_cursor = repository.get_movie_cursor(limit, cursor)
@@ -40,7 +37,7 @@ def get_movie_cursor_handler(limit: int, cursor: str | None = None,
     return movies_get_cursor
 
 
-@app.post("/movies/")
+@cinema_backend.post("/movies/")
 def create_movie_handler(movie_create: MovieCreate, repository: SqlMoviesRepository = Depends(get_repository)):
     movie_create = repository.create_movie(
         movie_create.title,
@@ -54,7 +51,7 @@ def create_movie_handler(movie_create: MovieCreate, repository: SqlMoviesReposit
     return movie_create
 
 
-@app.patch("/movies/{id}")
+@cinema_backend.patch("/movies/{id}")
 def update_movie_handler(id: UUID, updates: MovieUpdate, repository: SqlMoviesRepository = Depends(get_repository)):
     movie_update = repository.update_movie(id, updates.dict(exclude_unset=True))
 
@@ -62,7 +59,7 @@ def update_movie_handler(id: UUID, updates: MovieUpdate, repository: SqlMoviesRe
     return movie_update
 
 
-@app.delete("/movies/{id}")
+@cinema_backend.delete("/movies/{id}")
 def delete_movie_handler(id: UUID, repository: SqlMoviesRepository = Depends(get_repository)):
     movie_delete = repository.delete_movie(id)
 

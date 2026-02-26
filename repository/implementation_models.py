@@ -1,7 +1,7 @@
 from uuid import UUID
-from model.domain import MovieSummary
-from repository.models_for_sql import Movie
-from repository.interface_repository_model import MoviesRepository
+from model.models import MovieSummary
+from repository.models import Movie
+from repository.interface_model import MoviesRepository
 from sqlalchemy.orm import Session
 from sqlalchemy import select,and_,or_
 from controller.utils.cursor import decode_cursor, encode_cursor
@@ -192,10 +192,10 @@ class SqlMoviesRepository(MoviesRepository):
             f"Cursor-запрос завершён. Возвращено={len(movies)}, has_more={has_more}"
         )
 
-        answer = {
+        MovieList = {
             "movies": movies,
             "next_cursor": next_cursor,
             "has_more": has_more,
             "message": "Успешно"
         }
-        return answer
+        return MovieList

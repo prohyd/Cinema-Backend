@@ -13,10 +13,7 @@ DB_PASSWORLD = os.getenv("POSTGRES_PASSWORD")
 DB_NAME = os.getenv("POSTGRES_DB")
 DB_PORT = os.getenv("POSTGRES_PORT")
 
-logger.info("Загрузка конфигурации базы данных из .env")
-
 url = f"postgresql+psycopg2://{DB_USER}:{DB_PASSWORLD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
-logger.info("Создание SQLAlchemy engine")
 engine = create_engine(
     url,
     echo=False,
@@ -24,15 +21,12 @@ engine = create_engine(
     max_overflow=5,
     pool_timeout=30
 )
-logger.success("Engine успешно создан")
 
 session_db = sessionmaker(
     autocommit=False,
     autoflush=False,
     bind=engine
 )
-
-logger.success("Sessionmaker успешно настроен")
 
 def get_bd():
     logger.debug("Открытие новой DB-сессии")

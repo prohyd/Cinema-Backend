@@ -1,12 +1,6 @@
 import uvicorn
-import yaml
-from pathlib import Path
-
-BASE_DIR = Path(__file__).resolve().parent.parent
-
-def load_config(path: str ="config.yml") -> dict:
-    with open(path, "r", encoding="utf-8") as f:
-        return yaml.safe_load(f)
+from controller.config_log import load_config
+from loguru import logger
 
 
 if __name__ == "__main__":
