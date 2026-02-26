@@ -1,9 +1,11 @@
 from fastapi import FastAPI, Depends
 from uuid import UUID
-from controller.models_for_API import MovieCreate,MovieUpdate
+from controller.models_for_API import MovieCreate, MovieUpdate
 from repository.create_connection_to_bd import get_bd
 from repository.implementation_repository_models import SqlMoviesRepository
 from controller.config_log import setup_logging
+from repository.models_for_sql import Base
+from repository.create_connection_to_bd import engine
 from loguru import logger
 import uvicorn
 
@@ -11,8 +13,14 @@ setup_logging()
 
 app = FastAPI()
 
-def get_repository(db = Depends(get_bd)) -> SqlMoviesRepository:
+
+def get_repository(db=Depends(get_bd)) -> SqlMoviesRepository:
     return SqlMoviesRepository(db)
+
+
+@app.on_event("startup")
+def startup_event():
+    Base.metadata.create_all(bind=engine)
 
 
 @app.get("/movies/{id}")
@@ -24,7 +32,8 @@ def get_movie_handler(id: UUID, repository: SqlMoviesRepository = Depends(get_re
 
 
 @app.get("/movies/")
-def get_movie_cursor_handler(limit: int, cursor: str | None = None, repository: SqlMoviesRepository = Depends(get_repository)):
+def get_movie_cursor_handler(limit: int, cursor: str | None = None,
+                             repository: SqlMoviesRepository = Depends(get_repository)):
     movies_get_cursor = repository.get_movie_cursor(limit, cursor)
 
     logger.info("Найдено {} фильмов", len(movies_get_cursor["movies"]))
@@ -47,7 +56,7 @@ def create_movie_handler(movie_create: MovieCreate, repository: SqlMoviesReposit
 
 @app.patch("/movies/{id}")
 def update_movie_handler(id: UUID, updates: MovieUpdate, repository: SqlMoviesRepository = Depends(get_repository)):
-    movie_update = repository.update_movie(id,updates.dict(exclude_unset=True))
+    movie_update = repository.update_movie(id, updates.dict(exclude_unset=True))
 
     logger.success("Фильм id={} успешно обновлён", id)
     return movie_update

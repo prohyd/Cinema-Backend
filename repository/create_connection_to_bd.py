@@ -7,11 +7,11 @@ from pathlib import Path
 env_path = Path(__file__).resolve().parent.parent / ".env"
 load_dotenv(env_path)
 
-DB_HOST = os.getenv("DB_HOST")
-DB_USER = os.getenv("DB_USER")
-DB_PASSWORLD = os.getenv("DB_PASSWORLD")
-DB_NAME = os.getenv("DB_NAME")
-DB_PORT = os.getenv("DB_PORT")
+DB_HOST = os.getenv("POSTGRES_HOST")
+DB_USER = os.getenv("POSTGRES_USER")
+DB_PASSWORLD = os.getenv("POSTGRES_PASSWORD")
+DB_NAME = os.getenv("POSTGRES_DB")
+DB_PORT = os.getenv("POSTGRES_PORT")
 
 logger.info("Загрузка конфигурации базы данных из .env")
 
