@@ -15,14 +15,6 @@ DB_PORT = os.getenv("DB_PORT")
 
 logger.info("Загрузка конфигурации базы данных из .env")
 
-logger.debug(
-    "DB Config: host={}, port={}, user={}, name={}",
-    DB_HOST,
-    DB_PORT,
-    DB_USER,
-    DB_NAME
-)
-
 url = f"postgresql+psycopg2://{DB_USER}:{DB_PASSWORLD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 logger.info("Создание SQLAlchemy engine")
 engine = create_engine(
