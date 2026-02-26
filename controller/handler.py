@@ -11,49 +11,57 @@ setup_logging()
 
 app = FastAPI()
 
-def get_repository(db = Depends(get_bd)) -> SqlMoviesRepository:
-    return SqlMoviesRepository(db)
 
 
-@app.get("/movies/{id}")
-def get_movie_handler(id: int, repository: SqlMoviesRepository = Depends(get_repository)):
-    movie_get = repository.get_movie(id)
+@app.get("/cinema/{movie_id_input}")
+def get_movie_handler(movie_id_input: int, db: Session = Depends(get_bd)):
+    repository = SqlMoviesRepository(db)
 
-    logger.info("Фильм id={} успешно найден", id)
+    movie_get = repository.get_movie(movie_id_input)
+
+    logger.info("Кинотеатр id={} успешно найден", movie_id_input)
     return movie_get
 
 
-@app.get("/movies/")
-def get_movie_cursor_handler(limit: int, cursor: str | None = None, repository: SqlMoviesRepository = Depends(get_repository)):
+@app.get("/cinema/")
+def get_movie_cursor_handler(limit: int, cursor: str | None = None, db: Session = Depends(get_bd)):
+    repository = SqlMoviesRepository(db)
+
     movies_get_cursor = repository.get_movie_cursor(limit, cursor)
 
-    logger.info("Найдено {} фильмов", len(movies_get_cursor["movies"]))
+    logger.info("Найдено {} кинотеатров", len(movies_get_cursor["movies"]))
     return movies_get_cursor
 
 
-@app.post("/movies/")
-def create_movie_handler(movie_create: MoviesForAPICreate, repository: SqlMoviesRepository = Depends(get_repository)):
+@app.post("/cinema/")
+def create_movie_handler(movie_create: MoviesForAPICreate, db: Session = Depends(get_bd)):
+    repository = SqlMoviesRepository(db)
+
     movie_create_answer = repository.create_movie(
         movie_create.name_movie,
         movie_create.rating,
         movie_create.description
     )
 
-    logger.success("Фильм успешно создан")
+    logger.success("Кинотеатр успешно создан")
     return movie_create_answer
 
 
-@app.patch("/movies/{id}")
-def update_movie_handler(id: int, columns: str, new_value, repository: SqlMoviesRepository = Depends(get_repository)):
-    movie_update_answer = repository.update_movie(id, columns, new_value)
+@app.patch("/cinema/{movie_id_input}")
+def update_movie_handler(movie_id_input: int, columns: str, new_value, db: Session = Depends(get_bd)):
+    repository = SqlMoviesRepository(db)
 
-    logger.success("Фильм id={} успешно обновлён", id)
+    movie_update_answer = repository.update_movie(movie_id_input, columns, new_value)
+
+    logger.success("Кинотеатр id={} успешно обновлён", movie_id_input)
     return movie_update_answer
 
 
-@app.delete("/movies/{id}")
-def delete_movie_handler(id: int, repository: SqlMoviesRepository = Depends(get_repository)):
-    movie_delete_answer = repository.delete_movie(id)
+@app.delete("/cinema/{movie_id_input}")
+def delete_movie_handler(movie_id_input: int, db: Session = Depends(get_bd)):
+    repository = SqlMoviesRepository(db)
 
-    logger.success("Фильм id={} успешно удалён", id)
+    movie_delete_answer = repository.delete_movie(movie_id_input)
+
+    logger.success("Кинотеатр id={} успешно удалён", movie_id_input)
     return movie_delete_answer
