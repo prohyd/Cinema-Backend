@@ -3,7 +3,7 @@ from repository.models_for_sql import Movies
 from repository.interface_repository_model import MoviesRepository
 from sqlalchemy.orm import Session
 from sqlalchemy import select,and_,or_
-from model.utils.cursor import decode_cursor, encode_cursor
+from controller.utils.cursor import decode_cursor, encode_cursor
 from loguru import logger
 
 
