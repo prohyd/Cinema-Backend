@@ -7,7 +7,7 @@ class MoviesRepository(ABC):
         pass
 
     @abstractmethod
-    def create_movie(self, name_movie: str, rating: float, description: str):
+    def create_movie(self, title: str, rating: float, description: str,year: int,genre: str):
         pass
 
     @abstractmethod
@@ -15,9 +15,9 @@ class MoviesRepository(ABC):
         pass
 
     @abstractmethod
-    def delete_movie(self, movie_id: int) -> None:
+    def delete_movie(self, movie_id: int):
         pass
 
     @abstractmethod
-    def get_movie_cursor(self, skip: int, limit: int):
+    def get_movie_cursor(self, limit: int, cursor: str | None = None):
         pass

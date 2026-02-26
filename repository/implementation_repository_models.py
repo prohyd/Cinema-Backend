@@ -1,5 +1,7 @@
-from model.domain import MoviesForAPI
-from repository.models_for_sql import Movies
+from uuid import UUID
+
+from model.domain import MovieSummary
+from repository.models_for_sql import Movie
 from repository.interface_repository_model import MoviesRepository
 from sqlalchemy.orm import Session
 from sqlalchemy import select,and_,or_
@@ -13,27 +15,18 @@ class SqlMoviesRepository(MoviesRepository):
         self.session = session
         logger.info("SqlMoviesRepository инициализирован")
 
-    def _to_domain(self, movie: Movies) -> MoviesForAPI:
-        logger.debug(f"Преобразование ORM в Domain. id={movie.id_movie}")
-        return MoviesForAPI(
-            id_movie=movie.id_movie,
-            name_movie=movie.name_movie,
-            rating=movie.rating,
-            description=movie.description
+    def _to_domain(self, movie: Movie) -> MovieSummary:
+        logger.debug(f"Преобразование ORM в Domain. id={movie.id}")
+        return MovieSummary(
+            id=movie.id,
+            title=movie.title,
+            rating=movie.rating
         )
 
-    def get_movie(self, id_movie_input: int):
+    def get_movie(self, id_movie_input: UUID):
         logger.info(f"get_movie вызван. id={id_movie_input}")
 
-        if (id_movie_input <= 0) and id_movie_input > self.session.select(Movies).count():
-            logger.warning(f"Некорректный ID: {id_movie_input}")
-            answer = {
-                "movie": None,
-                "message": "Некорректный ID"
-            }
-            return answer
-
-        movie_found = self.session.get(Movies, id_movie_input)
+        movie_found = self.session.get(Movie, id_movie_input)
 
         if not movie_found:
             logger.warning(f"Фильм не найден. id={id_movie_input}")
@@ -50,14 +43,16 @@ class SqlMoviesRepository(MoviesRepository):
         }
         return answer
 
-    def create_movie(self, name_movie: str, rating: float, description: str):
-        logger.info(f"create_movie вызван. name={name_movie}, rating={rating}")
+    def create_movie(self, title: str, year: int, genre: str, rating: float, description: str):
+        logger.info(f"create_movie вызван. name={title}, rating={rating}")
 
         try:
-            movie_create = Movies(
-                name_movie=name_movie,
-                rating=rating,
-                description=description
+            movie_create = Movie(
+                title=title,
+                year = year,
+                genre = genre,
+                rating = rating,
+                description = description
             )
         except ValueError as e:
             logger.error(f"Ошибка создания объекта Movies: {e}")
@@ -71,7 +66,7 @@ class SqlMoviesRepository(MoviesRepository):
         self.session.commit()
         self.session.refresh(movie_create)
 
-        logger.info(f"Фильм успешно создан. id={movie_create.id_movie}")
+        logger.info(f"Фильм успешно создан. id={movie_create.id}")
 
         answer = {
             "movie": self._to_domain(movie_create),
@@ -79,18 +74,10 @@ class SqlMoviesRepository(MoviesRepository):
         }
         return answer
 
-    def delete_movie(self, id_movie_input: int):
+    def delete_movie(self, id_movie_input: UUID):
         logger.info(f"delete_movie вызван. id={id_movie_input}")
 
-        if (id_movie_input <= 0) and id_movie_input > self.session.select(Movies).count():
-            logger.warning(f"Некорректный ID для удаления: {id_movie_input}")
-            answer = {
-                "movie": None,
-                "message": "Некорректный ID"
-            }
-            return answer
-
-        movie_delete = self.session.get(Movies, id_movie_input)
+        movie_delete = self.session.get(Movie, id_movie_input)
 
         if movie_delete:
             self.session.delete(movie_delete)
@@ -112,10 +99,10 @@ class SqlMoviesRepository(MoviesRepository):
         }
         return answer
 
-    def update_movie(self, movie_id: int, update_colums: str, new_value):
+    def update_movie(self, movie_id: UUID, update_colums: str, new_value):
         logger.info(f"update_movie вызван. id={movie_id}, column={update_colums}")
 
-        movie_update = self.session.get(Movies, movie_id)
+        movie_update = self.session.get(Movie, movie_id)
 
         if movie_update is None:
             logger.warning(f"Некорректный ID для обновления: {movie_id}")
@@ -167,17 +154,17 @@ class SqlMoviesRepository(MoviesRepository):
             }
             return answer
 
-        sql_command = select(Movies)
+        sql_command = select(Movie)
 
         if cursor:
             created_at,movie_id = decode_cursor(cursor)
             logger.debug(f"Cursor декодирован. last_id={movie_id}")
             sql_command = sql_command.where(
                 or_(
-                    Movies.created_at < created_at,
+                    Movie.created_at < created_at,
                     and_(
-                        Movies.created_at == created_at,
-                        Movies.id_movie < movie_id
+                        Movie.created_at == created_at,
+                        Movie.id < movie_id
                     )
                 )
             )
@@ -185,8 +172,8 @@ class SqlMoviesRepository(MoviesRepository):
         sql_command = (
             sql_command
             .order_by(
-                Movies.created_at.desc(),
-                Movies.id_movie.desc()
+                Movie.created_at.desc(),
+                Movie.id.desc()
             ).limit(limit+1)
         )
 

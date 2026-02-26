@@ -1,9 +1,10 @@
 import base64
 import json
 from datetime import datetime
+from uuid import UUID
 
 
-def encode_cursor(created_at: datetime, movie_id: int) -> str:
+def encode_cursor(created_at: datetime, movie_id: UUID) -> str:
     payload = {
         "created_at": created_at.isoformat(),
         "id_movie": movie_id

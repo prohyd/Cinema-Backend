@@ -1,16 +1,20 @@
+import uuid
 from sqlalchemy.orm import declarative_base
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy import Column, Integer, String, Numeric, DateTime, func
 
 Base = declarative_base()
 
 
-class Movies(Base):
+class Movie(Base):
     __tablename__ = 'movies'
 
-    id_movie = Column(Integer, primary_key=True)
-    name_movie = Column(String(50), nullable=False)
-    rating = Column(Numeric(5, 2), nullable=False)
-    description = Column(String(300), nullable=False)
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    title = Column(String(50), nullable=False)
+    year = Column(Integer, nullable=False)
+    genre = Column(String(50), nullable=True)
+    rating = Column(Numeric(5, 2), nullable=True)
+    description = Column(String(300), nullable=True)
 
     created_at = Column(
         DateTime(timezone=True),
