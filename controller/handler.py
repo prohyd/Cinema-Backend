@@ -1,6 +1,6 @@
 from fastapi import FastAPI, Depends
 from uuid import UUID
-from controller.models_for_API import MovieCreate
+from controller.models_for_API import MovieCreate,MovieUpdate
 from repository.create_connection_to_bd import get_bd
 from repository.implementation_repository_models import SqlMoviesRepository
 from controller.config_log import setup_logging
@@ -46,8 +46,8 @@ def create_movie_handler(movie_create: MovieCreate, repository: SqlMoviesReposit
 
 
 @app.patch("/movies/{id}")
-def update_movie_handler(id: UUID, columns: str, new_value, repository: SqlMoviesRepository = Depends(get_repository)):
-    movie_update = repository.update_movie(id, columns, new_value)
+def update_movie_handler(id: UUID, updates: MovieUpdate, repository: SqlMoviesRepository = Depends(get_repository)):
+    movie_update = repository.update_movie(id,updates.dict(exclude_unset=True))
 
     logger.success("Фильм id={} успешно обновлён", id)
     return movie_update

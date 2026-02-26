@@ -1,5 +1,4 @@
 from uuid import UUID
-
 from model.domain import MovieSummary
 from repository.models_for_sql import Movie
 from repository.interface_repository_model import MoviesRepository
@@ -99,8 +98,8 @@ class SqlMoviesRepository(MoviesRepository):
         }
         return answer
 
-    def update_movie(self, movie_id: UUID, update_colums: str, new_value):
-        logger.info(f"update_movie вызван. id={movie_id}, column={update_colums}")
+    def update_movie(self, movie_id: UUID, updates: dict):
+        logger.info(f"update_movie вызван. id={movie_id}")
 
         movie_update = self.session.get(Movie, movie_id)
 
@@ -112,23 +111,24 @@ class SqlMoviesRepository(MoviesRepository):
             }
             return answer
 
-        if not hasattr(movie_update, update_colums):
-            logger.warning(f"Некорректное имя столбца: {update_colums}")
-            answer = {
-                "movie": None,
-                "message": "Некорретное название столбца"
-            }
-            return answer
+        for field, value in updates.items():
+            if not hasattr(movie_update, field):
+                logger.warning(f"Некорректное имя столбца: {field}")
+                answer = {
+                    "movie": None,
+                    "message": "Некорретное название столбца"
+                }
+                return answer
 
-        try:
-            setattr(movie_update, update_colums, new_value)
-        except ValueError as e:
-            logger.error(f"Некорректное новое значение: {e}")
-            answer = {
-                "movie": None,
-                "message": "Некорретное новое значение"
-            }
-            return answer
+            try:
+                setattr(movie_update, field, value)
+            except ValueError as e:
+                logger.error(f"Некорректное новое значение: {e}")
+                answer = {
+                    "movie": None,
+                    "message": "Некорретное новое значение"
+                }
+                return answer
 
         self.session.commit()
         self.session.refresh(movie_update)
