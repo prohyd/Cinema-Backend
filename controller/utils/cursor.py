@@ -4,7 +4,7 @@ from datetime import datetime
 from uuid import UUID
 
 
-def encode_cursor(created_at: datetime, movie_id: UUID) -> str:
+def encode_cursor(created_at: datetime, movie_id: UUID):
     payload = {
         "created_at": created_at.isoformat(),
         "id_movie": movie_id

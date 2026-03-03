@@ -4,8 +4,6 @@ from controller.models import MovieCreate, MovieUpdate
 from repository.connection import get_bd
 from repository.implementation import SqlMoviesRepository
 from loguru import logger
-from repository.models import Base
-from repository.connection import engine
 
 
 cinema_backend = FastAPI()
@@ -13,11 +11,6 @@ cinema_backend = FastAPI()
 
 def get_repository(db=Depends(get_bd)) -> SqlMoviesRepository:
     return SqlMoviesRepository(db)
-
-
-@cinema_backend.on_event("startup")
-def startup_event():
-    Base.metadata.create_all(bind=engine)
 
 
 @cinema_backend.get("/movies/{id}")
