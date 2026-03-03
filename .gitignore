@@ -5,3 +5,6 @@ __pycache__/
 logs/
 .idea/
 .env
+.gitignore
+.yml
+.ini

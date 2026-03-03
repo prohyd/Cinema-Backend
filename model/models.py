@@ -12,8 +12,7 @@ class MovieSummary(BaseModel):
 
 
 class Movie:
-    def __init__(self, id: UUID, title: str, year: int, genre: str | None, rating: float | None,
-                 description: str | None, ):
+    def __init__(self, id: UUID, title: str, year: int, genre: str | None, rating: float | None, description: str | None, ):
         self.id = id
         self.title = title
         self.year = year

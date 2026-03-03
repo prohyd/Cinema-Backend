@@ -1,0 +1,6 @@
+env: your_env
+
+server:
+    your_config_server
+logging:
+    your_config_logger

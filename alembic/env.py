@@ -7,7 +7,7 @@ from alembic import context
 
 import os
 from repository.models import Base
-from repository.create_connection import url
+from repository.connection import url
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

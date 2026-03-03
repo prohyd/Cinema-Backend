@@ -1,7 +1,7 @@
 from uuid import UUID
 from model.models import MovieSummary
 from repository.models import Movie
-from repository.interface_model import MoviesRepository
+from repository.interface import MoviesRepository
 from sqlalchemy.orm import Session
 from sqlalchemy import select,and_,or_
 from controller.utils.cursor import decode_cursor, encode_cursor

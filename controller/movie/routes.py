@@ -1,11 +1,11 @@
 from fastapi import FastAPI, Depends
 from uuid import UUID
 from controller.models import MovieCreate, MovieUpdate
-from repository.create_connection import get_bd
-from repository.implementation_models import SqlMoviesRepository
+from repository.connection import get_bd
+from repository.implementation import SqlMoviesRepository
 from loguru import logger
 from repository.models import Base
-from repository.create_connection import engine
+from repository.connection import engine
 
 
 cinema_backend = FastAPI()
