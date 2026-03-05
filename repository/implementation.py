@@ -5,7 +5,7 @@ from repository.models import Movie
 from repository.interface import MoviesRepository
 from sqlalchemy.orm import Session
 from sqlalchemy import select, and_, or_
-from utils.cursor import decode_cursor, encode_cursor
+from controller.pagination.cursor import decode_cursor, encode_cursor
 
 
 
