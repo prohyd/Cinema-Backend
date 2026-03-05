@@ -14,62 +14,62 @@ def get_repository(db=Depends(get_db)) -> SqlMoviesRepository:
 
 
 @movies.get("/movies/{id}")
-def get_movie_handler(id: UUID, repository: SqlMoviesRepository = Depends(get_repository)):
+def get_movie(id: UUID, repository: SqlMoviesRepository = Depends(get_repository)):
     try:
-        movie_get = repository.get_movie(id)
+        movie = repository.get_movie(id)
 
     except ValidationErr as e:
         raise HTTPException(status_code=400, detail=str(e))
 
     logger.info("Фильм id={} успешно найден", id)
-    return movie_get
+    return movie
 
 
 @movies.get("/movies")
-def get_movie_cursor_handler(limit: int, cursor: str | None = None,
+def get_movie_cursor(limit: int, cursor: str | None = None,
                              repository: SqlMoviesRepository = Depends(get_repository)):
     if limit<1:
         raise HTTPException(status_code=400, detail = "Некорректный limit")
 
     try:
-        movies_get_cursor = repository.get_movie_cursor(limit, cursor)
+        movies = repository.get_movie_cursor(limit, cursor)
 
     except ValidationErr as e:
         raise HTTPException(status_code=400, detail=str(e))
     logger
 
-    logger.info("Найдено {} фильмов", len(movies_get_cursor["movies"]))
-    return movies_get_cursor
+    logger.info("Найдено {} фильмов", len(movies["movies"]))
+    return movies
 
 
 @movies.post("/movies")
-def create_movie_handler(movie_create: MovieCreate, repository: SqlMoviesRepository = Depends(get_repository)):
+def create_movie(movie_create: MovieCreate, repository: SqlMoviesRepository = Depends(get_repository)):
     try:
-        movie_create = repository.create_movie(movie_create.model_dump(exclude_unset=True))
+        movie = repository.create_movie(movie_create.model_dump(exclude_unset=True))
     except ValidationErr as e:
         raise HTTPException(status_code=400, detail=str(e))
 
     logger.success("Фильм успешно создан")
-    return movie_create
+    return movie
 
 
 @movies.patch("/movies/{id}")
-def update_movie_handler(id: UUID, updates: MovieUpdate, repository: SqlMoviesRepository = Depends(get_repository)):
+def update_movie(id: UUID, updates: MovieUpdate, repository: SqlMoviesRepository = Depends(get_repository)):
     try:
-        movie_update = repository.update_movie(id, updates.model_dump(exclude_unset=True))
+        movie = repository.update_movie(id, updates.model_dump(exclude_unset=True))
     except ValidationErr as e:
         raise HTTPException(status_code=400, detail=str(e))
 
     logger.success("Фильм id={} успешно обновлён", id)
-    return movie_update
+    return movie
 
 
 @movies.delete("/movies/{id}")
-def delete_movie_handler(id: UUID, repository: SqlMoviesRepository = Depends(get_repository)):
+def delete_movie(id: UUID, repository: SqlMoviesRepository = Depends(get_repository)):
     try:
-        movie_delete = repository.delete_movie(id)
+        movie = repository.delete_movie(id)
     except ValidationErr as e:
         raise HTTPException(status_code=400, detail=str(e))
 
     logger.success("Фильм id={} успешно удалён", id)
-    return movie_delete
+    return movie

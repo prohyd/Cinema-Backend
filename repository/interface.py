@@ -7,11 +7,11 @@ class MoviesRepository(ABC):
         pass
 
     @abstractmethod
-    def create_movie(self, title: str, rating: float, description: str,year: int,genre: str):
+    def create_movie(self, creates: dict):
         pass
 
     @abstractmethod
-    def update_movie(self, movie_id: int, update_colums: str, new_value):
+    def update_movie(self, updates: dict):
         pass
 
     @abstractmethod

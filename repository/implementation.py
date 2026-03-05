@@ -8,7 +8,6 @@ from sqlalchemy import select, and_, or_
 from controller.pagination.cursor import decode_cursor, encode_cursor
 
 
-
 class SqlMoviesRepository(MoviesRepository):
 
     def __init__(self, session: Session):
@@ -21,8 +20,8 @@ class SqlMoviesRepository(MoviesRepository):
             rating=movie.rating
         )
 
-    def get_movie(self, id_movie_input: UUID):
-        movie_found = self.session.get(Movie, id_movie_input)
+    def get_movie(self, id: UUID):
+        movie_found = self.session.get(Movie, id)
 
         if not movie_found:
             raise ValidationErr("Фильм по такому ID не найден")
@@ -44,42 +43,42 @@ class SqlMoviesRepository(MoviesRepository):
         self.session.refresh(movie_create)
         return self._to_domain(movie_create)
 
-    def delete_movie(self, id_movie_input: UUID):
-        movie_delete = self.session.get(Movie, id_movie_input)
+    def delete_movie(self, id: UUID):
+        movie_found = self.session.get(Movie, id)
 
-        if movie_delete:
-            self.session.delete(movie_delete)
+        if movie_found:
+            self.session.delete(movie_found)
             self.session.commit()
 
-            return movie_delete
+            return movie_found
 
         raise ValidationErr("Элемент по данному ID не найден")
 
-    def update_movie(self, movie_id: UUID, updates: dict):
-        movie_update = self.session.get(Movie, movie_id)
+    def update_movie(self, id: UUID, updates: dict):
+        movie_found = self.session.get(Movie, id)
 
-        if movie_update is None:
+        if movie_found is None:
             raise ValidationErr("По заданному ID элемент не найден")
 
         for field, value in updates.items():
-            setattr(movie_update, field, value)
+            setattr(movie_found, field, value)
 
         self.session.commit()
-        self.session.refresh(movie_update)
+        self.session.refresh(movie_found)
 
-        return self._to_domain(movie_update)
+        return self._to_domain(movie_found)
 
     def get_movie_cursor(self, limit: int, cursor: str | None = None):
         sql_command = select(Movie)
 
         if cursor:
-            created_at, movie_id = decode_cursor(cursor)
+            created_at, id = decode_cursor(cursor)
             sql_command = sql_command.where(
                 or_(
                     Movie.created_at < created_at,
                     and_(
                         Movie.created_at == created_at,
-                        Movie.id < movie_id
+                        Movie.id < id
                     )
                 )
             )
@@ -100,7 +99,7 @@ class SqlMoviesRepository(MoviesRepository):
 
         next_cursor = None
         if has_more:
-            next_cursor = encode_cursor(movies[-1].created_at, movie_id)
+            next_cursor = encode_cursor(movies[-1].created_at, id)
 
         MovieList = {
             "movies": movies,

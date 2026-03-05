@@ -13,6 +13,10 @@ def load_config(path=CONFIG_DIR / "config.yml"):
 
     with open(path_obj, "r", encoding="utf-8") as f:
         config = yaml.safe_load(f)
+        return config
+
+
+def setup(config):
 
     env = config.get("env", "dev")
     log_config = config["logging"][env]
@@ -35,3 +39,5 @@ def load_config(path=CONFIG_DIR / "config.yml"):
     logger.info(f"Логирование настроено для среды: {env}")
 
     return config
+def start():
+    return setup(load_config())

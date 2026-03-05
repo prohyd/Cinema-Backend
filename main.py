@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from utils.logging_config import load_config
+from utils.logging_config import start
 from controller.movie.handler import movies
 from loguru import logger
 
@@ -9,7 +9,7 @@ app.include_router(movies)
 
 @app.on_event("startup")
 def startup():
-    config = load_config()
+    config = start()
 
     env = config["env"]
 
