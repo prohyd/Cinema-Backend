@@ -26,7 +26,7 @@ class SqlMoviesRepository(MoviesRepository):
         if not movie_found:
             raise ValidationErr("Фильм по такому ID не найден")
 
-        return self._to_domain(movie_found)
+        return movie_found
 
     def create_movie(self, creates: dict):
 
@@ -92,7 +92,10 @@ class SqlMoviesRepository(MoviesRepository):
         )
 
         result = self.session.execute(sql_command)
-        movies = result.scalars().all()
+
+        movies = []
+        for movie in result.scalars().all():
+            movies.append(self._to_domain(movie))
 
         has_more = len(movies) > limit
         movies = movies[:limit]
