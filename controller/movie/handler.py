@@ -1,4 +1,4 @@
-from utils.config_err import ValidationErr
+from utils.custom_errors import ValidationErr
 from fastapi import FastAPI, Depends, HTTPException
 from uuid import UUID
 from model.models import MovieCreate, MovieUpdate

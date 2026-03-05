@@ -1,5 +1,5 @@
 import uvicorn
-from utils.config_log import load_config
+from utils.logging_config import load_config
 from loguru import logger
 
 

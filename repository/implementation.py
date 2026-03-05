@@ -1,5 +1,5 @@
 from uuid import UUID
-from utils.config_err import ValidationErr
+from utils.custom_errors import ValidationErr
 from model.models import MovieSummary
 from repository.models import Movie
 from repository.interface import MoviesRepository
