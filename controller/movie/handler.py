@@ -1,19 +1,19 @@
 from utils.custom_errors import ValidationErr
-from fastapi import FastAPI, Depends, HTTPException
+from fastapi import Depends, HTTPException, APIRouter
 from uuid import UUID
 from model.models import MovieCreate, MovieUpdate
 from repository.connection import get_db
 from repository.implementation import SqlMoviesRepository
 from loguru import logger
 
-cinema_backend = FastAPI()
+movies = APIRouter()
 
 
 def get_repository(db=Depends(get_db)) -> SqlMoviesRepository:
     return SqlMoviesRepository(db)
 
 
-@cinema_backend.get("/movies/{id}")
+@movies.get("/movies/{id}")
 def get_movie_handler(id: UUID, repository: SqlMoviesRepository = Depends(get_repository)):
     try:
         movie_get = repository.get_movie(id)
@@ -25,7 +25,7 @@ def get_movie_handler(id: UUID, repository: SqlMoviesRepository = Depends(get_re
     return movie_get
 
 
-@cinema_backend.get("/movies/")
+@movies.get("/movies")
 def get_movie_cursor_handler(limit: int, cursor: str | None = None,
                              repository: SqlMoviesRepository = Depends(get_repository)):
     if limit<1:
@@ -36,12 +36,13 @@ def get_movie_cursor_handler(limit: int, cursor: str | None = None,
 
     except ValidationErr as e:
         raise HTTPException(status_code=400, detail=str(e))
+    logger
 
     logger.info("Найдено {} фильмов", len(movies_get_cursor["movies"]))
     return movies_get_cursor
 
 
-@cinema_backend.post("/movies/")
+@movies.post("/movies")
 def create_movie_handler(movie_create: MovieCreate, repository: SqlMoviesRepository = Depends(get_repository)):
     try:
         movie_create = repository.create_movie(movie_create.model_dump(exclude_unset=True))
@@ -52,7 +53,7 @@ def create_movie_handler(movie_create: MovieCreate, repository: SqlMoviesReposit
     return movie_create
 
 
-@cinema_backend.patch("/movies/{id}")
+@movies.patch("/movies/{id}")
 def update_movie_handler(id: UUID, updates: MovieUpdate, repository: SqlMoviesRepository = Depends(get_repository)):
     try:
         movie_update = repository.update_movie(id, updates.model_dump(exclude_unset=True))
@@ -63,7 +64,7 @@ def update_movie_handler(id: UUID, updates: MovieUpdate, repository: SqlMoviesRe
     return movie_update
 
 
-@cinema_backend.delete("/movies/{id}")
+@movies.delete("/movies/{id}")
 def delete_movie_handler(id: UUID, repository: SqlMoviesRepository = Depends(get_repository)):
     try:
         movie_delete = repository.delete_movie(id)

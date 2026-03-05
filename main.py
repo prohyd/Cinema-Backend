@@ -1,9 +1,14 @@
-import uvicorn
+from fastapi import FastAPI
 from utils.logging_config import load_config
+from controller.movie.handler import movies
 from loguru import logger
 
+app = FastAPI()
+app.include_router(movies)
 
-if __name__ == "__main__":
+
+@app.on_event("startup")
+def startup():
     config = load_config()
 
     env = config["env"]
@@ -11,10 +16,4 @@ if __name__ == "__main__":
     server_config = config["server"][env]
     log_config = config["logging"][env]
 
-    uvicorn.run(
-        server_config["app"],
-        host=server_config["host"],
-        port=server_config["port"],
-        reload=server_config["reload"],
-        log_level=log_config["level"].lower()
-    )
+    logger.info("Приложение запускается в окружении {}", env)
