@@ -1,5 +1,5 @@
 import uvicorn
-from controller.config_log import load_config
+from utils.config_log import load_config
 from loguru import logger
 
 

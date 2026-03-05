@@ -28,7 +28,7 @@ session_db = sessionmaker(
     bind=engine
 )
 
-def get_bd():
+def get_db():
     logger.debug("Открытие новой DB-сессии")
     db = session_db()
     try:

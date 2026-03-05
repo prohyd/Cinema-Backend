@@ -1,21 +1,20 @@
 from uuid import UUID
+from utils.config_err import ValidationErr
 from model.models import MovieSummary
 from repository.models import Movie
 from repository.interface import MoviesRepository
 from sqlalchemy.orm import Session
-from sqlalchemy import select,and_,or_
-from controller.utils.cursor import decode_cursor, encode_cursor
-from loguru import logger
+from sqlalchemy import select, and_, or_
+from utils.cursor import decode_cursor, encode_cursor
+
 
 
 class SqlMoviesRepository(MoviesRepository):
 
     def __init__(self, session: Session):
         self.session = session
-        logger.info("SqlMoviesRepository инициализирован")
 
     def _to_domain(self, movie: Movie) -> MovieSummary:
-        logger.debug(f"Преобразование ORM в Domain. id={movie.id}")
         return MovieSummary(
             id=movie.id,
             title=movie.title,
@@ -23,142 +22,58 @@ class SqlMoviesRepository(MoviesRepository):
         )
 
     def get_movie(self, id_movie_input: UUID):
-        logger.info(f"get_movie вызван. id={id_movie_input}")
-
         movie_found = self.session.get(Movie, id_movie_input)
 
         if not movie_found:
-            logger.warning(f"Фильм не найден. id={id_movie_input}")
-            answer = {
-                "movie": None,
-                "message": "Фильм по такому ID не был найден"
-            }
-            return answer
+            raise ValidationErr("Фильм по такому ID не найден")
 
-        logger.info(f"Фильм найден успешно. id={id_movie_input}")
-        answer = {
-            "movie": self._to_domain(movie_found),
-            "message": "Удачно"
-        }
-        return answer
+        return self._to_domain(movie_found)
 
-    def create_movie(self, title: str, year: int, genre: str, rating: float, description: str):
-        logger.info(f"create_movie вызван. name={title}, rating={rating}")
+    def create_movie(self, creates: dict):
 
-        try:
-            movie_create = Movie(
-                title=title,
-                year = year,
-                genre = genre,
-                rating = rating,
-                description = description
-            )
-        except ValueError as e:
-            logger.error(f"Ошибка создания объекта Movies: {e}")
-            answer = {
-                "movie": None,
-                "message": "Некорректные данные"
-            }
-            return answer
+        movie_create = Movie(
+            title=creates.get("title"),
+            year=creates.get("year"),
+            genre=creates.get("genre"),
+            rating=creates.get("rating"),
+            description=creates.get("description")
+        )
 
         self.session.add(movie_create)
         self.session.commit()
         self.session.refresh(movie_create)
-
-        logger.info(f"Фильм успешно создан. id={movie_create.id}")
-
-        answer = {
-            "movie": self._to_domain(movie_create),
-            "message": "Успешно"
-        }
-        return answer
+        return self._to_domain(movie_create)
 
     def delete_movie(self, id_movie_input: UUID):
-        logger.info(f"delete_movie вызван. id={id_movie_input}")
-
         movie_delete = self.session.get(Movie, id_movie_input)
 
         if movie_delete:
             self.session.delete(movie_delete)
             self.session.commit()
 
-            logger.info(f"Фильм успешно удалён. id={id_movie_input}")
+            return movie_delete
 
-            answer = {
-                "movie": movie_delete,
-                "message": "Успешно"
-            }
-            return answer
-
-        logger.warning(f"Фильм для удаления не найден. id={id_movie_input}")
-
-        answer = {
-            "movie": None,
-            "message": "Обьект для удаления не был найден"
-        }
-        return answer
+        raise ValidationErr("Элемент по данному ID не найден")
 
     def update_movie(self, movie_id: UUID, updates: dict):
-        logger.info(f"update_movie вызван. id={movie_id}")
-
         movie_update = self.session.get(Movie, movie_id)
 
         if movie_update is None:
-            logger.warning(f"Некорректный ID для обновления: {movie_id}")
-            answer = {
-                "movie": None,
-                "message": "Некорректный ID"
-            }
-            return answer
+            raise ValidationErr("По заданному ID элемент не найден")
 
         for field, value in updates.items():
-            if not hasattr(movie_update, field):
-                logger.warning(f"Некорректное имя столбца: {field}")
-                answer = {
-                    "movie": None,
-                    "message": "Некорретное название столбца"
-                }
-                return answer
-
-            try:
-                setattr(movie_update, field, value)
-            except ValueError as e:
-                logger.error(f"Некорректное новое значение: {e}")
-                answer = {
-                    "movie": None,
-                    "message": "Некорретное новое значение"
-                }
-                return answer
+            setattr(movie_update, field, value)
 
         self.session.commit()
         self.session.refresh(movie_update)
 
-        logger.info(f"Фильм успешно обновлён. id={movie_id}")
-
-        answer = {
-            "movie": self._to_domain(movie_update),
-            "message": "Успешно"
-        }
-        return answer
+        return self._to_domain(movie_update)
 
     def get_movie_cursor(self, limit: int, cursor: str | None = None):
-        logger.info(f"get_movie_cursor вызван. limit={limit}, cursor={cursor}")
-
-        if limit <= 0:
-            logger.warning(f"Некорректный limit: {limit}")
-            answer = {
-                "movies": None,
-                "next_cursor": None,
-                "has_more": False,
-                "message": "Некорретный limit"
-            }
-            return answer
-
         sql_command = select(Movie)
 
         if cursor:
-            created_at,movie_id = decode_cursor(cursor)
-            logger.debug(f"Cursor декодирован. last_id={movie_id}")
+            created_at, movie_id = decode_cursor(cursor)
             sql_command = sql_command.where(
                 or_(
                     Movie.created_at < created_at,
@@ -174,7 +89,7 @@ class SqlMoviesRepository(MoviesRepository):
             .order_by(
                 Movie.created_at.desc(),
                 Movie.id.desc()
-            ).limit(limit+1)
+            ).limit(limit + 1)
         )
 
         result = self.session.execute(sql_command)
@@ -186,11 +101,6 @@ class SqlMoviesRepository(MoviesRepository):
         next_cursor = None
         if has_more:
             next_cursor = encode_cursor(movies[-1].created_at, movie_id)
-            logger.debug(f"Сгенерирован next_cursor={next_cursor}")
-
-        logger.info(
-            f"Cursor-запрос завершён. Возвращено={len(movies)}, has_more={has_more}"
-        )
 
         MovieList = {
             "movies": movies,

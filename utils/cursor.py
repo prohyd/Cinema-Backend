@@ -4,10 +4,10 @@ from datetime import datetime
 from uuid import UUID
 
 
-def encode_cursor(created_at: datetime, movie_id: UUID):
+def encode_cursor(created_at: datetime, id_movie: UUID):
     payload = {
         "created_at": created_at.isoformat(),
-        "id_movie": movie_id
+        "id_movie": id_movie
     }
     raw = json.dumps(payload).encode()
     return base64.urlsafe_b64encode(raw).decode()
