@@ -1,5 +1,4 @@
 from uuid import UUID
-from utils.custom_errors import ValidationErr
 from model.models import MovieSummary
 from repository.models import Movie
 from repository.interface import MoviesRepository
@@ -21,12 +20,7 @@ class SqlMoviesRepository(MoviesRepository):
         )
 
     def get_movie(self, id: UUID):
-        movie_found = self.session.get(Movie, id)
-
-        if not movie_found:
-            raise ValidationErr("Фильм по такому ID не найден")
-
-        return movie_found
+        return self.session.get(Movie, id)
 
     def create_movie(self, creates: dict):
 
@@ -52,13 +46,13 @@ class SqlMoviesRepository(MoviesRepository):
 
             return movie_found
 
-        raise ValidationErr("Элемент по данному ID не найден")
+        return movie_found
 
     def update_movie(self, id: UUID, updates: dict):
         movie_found = self.session.get(Movie, id)
 
         if movie_found is None:
-            raise ValidationErr("По заданному ID элемент не найден")
+            return movie_found
 
         for field, value in updates.items():
             setattr(movie_found, field, value)
