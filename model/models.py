@@ -3,7 +3,7 @@ import uuid
 import datetime
 from datetime import datetime
 from pydantic import BaseModel, ValidationError, field_validator, Field, ConfigDict
-from model.transformees.camelCase import CamelModel
+from model.transformes.camelCase import CamelModel
 
 
 class MovieSummary(BaseModel):

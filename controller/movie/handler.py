@@ -14,12 +14,12 @@ def get_repository(db=Depends(get_db)) -> SqlMoviesRepository:
 
 @movies.get("/movies/{id}")
 def get_movie(id: UUID, repository: SqlMoviesRepository = Depends(get_repository)):
-    movie = repository.get_movie(id)
+    movie = repository.get_by_id(id)
 
     if movie is None:
         raise HTTPException(status_code=404, detail="Movie not found")
 
-    logger.info("Фильм id={} успешно найден", id)
+    logger.info("Фильм id={} найден", id)
     return movie
 
 
@@ -29,7 +29,7 @@ def get_movie_cursor(
         cursor: str | None = None,
         repository: SqlMoviesRepository = Depends(get_repository)
 ):
-    movies = repository.get_movie_cursor(limit, cursor)
+    movies = repository.get_by_cursor(limit, cursor)
 
     logger.info("Найдено {} фильмов", len(movies["movies"]))
     return movies
@@ -37,28 +37,28 @@ def get_movie_cursor(
 
 @movies.post("/movies", status_code=status.HTTP_201_CREATED)
 def create_movie(movie_create: MovieCreate, repository: SqlMoviesRepository = Depends(get_repository)):
-    movie = repository.create_movie(movie_create.model_dump(exclude_unset=True))
+    movie = repository.create(movie_create)
 
-    logger.success("Фильм успешно создан")
+    logger.success("Фильм создан")
     return movie
 
 
 @movies.patch("/movies/{id}")
 def update_movie(id: UUID, updates: MovieUpdate, repository: SqlMoviesRepository = Depends(get_repository)):
-    movie = repository.update_movie(id, updates.model_dump(exclude_unset=True))
+    movie = repository.update(id, updates)
 
     if movie is None:
         raise HTTPException(status_code=404, detail="Movie not found")
 
-    logger.success("Фильм id={} успешно обновлён", id)
+    logger.success("Фильм id={} обновлён", id)
     return movie
 
 
 @movies.delete("/movies/{id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_movie(id: UUID, repository: SqlMoviesRepository = Depends(get_repository)):
-    movie = repository.delete_movie(id)
+    movie = repository.delete(id)
 
     if movie is None:
         raise HTTPException(status_code=404, detail="Movie not found")
 
-    logger.success("Фильм id={} успешно удалён", id)
+    logger.success("Фильм id={} удалён", id)

@@ -1,5 +1,5 @@
 from uuid import UUID
-from model.models import MovieSummary, Movie
+from model.models import MovieSummary, MovieCreate, MovieUpdate, Movie
 from repository.models import MovieEntity
 from repository.interface import MoviesRepository
 from sqlalchemy.orm import Session
@@ -30,29 +30,23 @@ class SqlMoviesRepository(MoviesRepository):
             rating=movie.rating
         )
 
-    def get_movie(self, id: UUID):
+    def get_by_id(self, id: UUID):
         movie_found = self.session.get(MovieEntity, id)
 
         if movie_found:
             return self._to_domain(movie_found)
         return movie_found
 
-    def create_movie(self, creates: dict):
+    def create(self, movie: MovieCreate):
 
-        movie_create = MovieEntity(
-            title=creates.get("title"),
-            year=creates.get("year"),
-            genre=creates.get("genre"),
-            rating=creates.get("rating"),
-            description=creates.get("description")
-        )
+        movie_create = MovieEntity(**movie.model_dump(exclude_unset=True))
 
         self.session.add(movie_create)
         self.session.commit()
         self.session.refresh(movie_create)
         return self._to_domain(movie_create)
 
-    def delete_movie(self, id: UUID):
+    def delete(self, id: UUID):
         movie_found = self.session.get(MovieEntity, id)
 
         if movie_found:
@@ -63,13 +57,15 @@ class SqlMoviesRepository(MoviesRepository):
 
         return movie_found
 
-    def update_movie(self, id: UUID, updates: dict):
+    def update(self, id: UUID, updates: MovieUpdate):
         movie_found = self.session.get(MovieEntity, id)
 
         if movie_found is None:
             return movie_found
 
-        for field, value in updates.items():
+        update_data = updates.model_dump(exclude_unset=True)
+
+        for field, value in update_data.items():
             setattr(movie_found, field, value)
 
         self.session.commit()
@@ -77,7 +73,7 @@ class SqlMoviesRepository(MoviesRepository):
 
         return self._to_domain(movie_found)
 
-    def get_movie_cursor(self, limit: int, cursor: str | None = None):
+    def get_by_cursor(self, limit: int, cursor: str | None = None):
         sql_command = select(MovieEntity)
 
         if cursor:
