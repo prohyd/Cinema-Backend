@@ -3,21 +3,21 @@ from abc import ABC, abstractmethod
 
 class MoviesRepository(ABC):
     @abstractmethod
-    def get_movie(self, movie_id: int):
+    def get_by_id(self, movie_id: int):
         pass
 
     @abstractmethod
-    def create_movie(self, creates: dict):
+    def create(self, creates: dict):
         pass
 
     @abstractmethod
-    def update_movie(self, updates: dict):
+    def update(self, updates: dict):
         pass
 
     @abstractmethod
-    def delete_movie(self, movie_id: int):
+    def delete(self, movie_id: int):
         pass
 
     @abstractmethod
-    def get_movie_cursor(self, limit: int, cursor: str | None = None):
+    def get_by_cursor(self, limit: int, cursor: str | None = None):
         pass
