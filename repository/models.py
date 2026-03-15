@@ -9,7 +9,7 @@ class Base(DeclarativeBase):
     pass
 
 
-class Movie(Base):
+class MovieEntity(Base):
     __tablename__ = 'movies'
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)

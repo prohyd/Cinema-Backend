@@ -1,4 +1,4 @@
-from fastapi import Depends, HTTPException, APIRouter, Query
+from fastapi import Depends, HTTPException, APIRouter, Query, status
 from uuid import UUID
 from model.models import MovieCreate, MovieUpdate
 from repository.connection import get_db
@@ -35,7 +35,7 @@ def get_movie_cursor(
     return movies
 
 
-@movies.post("/movies")
+@movies.post("/movies", status_code=status.HTTP_201_CREATED)
 def create_movie(movie_create: MovieCreate, repository: SqlMoviesRepository = Depends(get_repository)):
     movie = repository.create_movie(movie_create.model_dump(exclude_unset=True))
 
@@ -54,7 +54,7 @@ def update_movie(id: UUID, updates: MovieUpdate, repository: SqlMoviesRepository
     return movie
 
 
-@movies.delete("/movies/{id}")
+@movies.delete("/movies/{id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_movie(id: UUID, repository: SqlMoviesRepository = Depends(get_repository)):
     movie = repository.delete_movie(id)
 
@@ -62,4 +62,3 @@ def delete_movie(id: UUID, repository: SqlMoviesRepository = Depends(get_reposit
         raise HTTPException(status_code=404, detail="Movie not found")
 
     logger.success("Фильм id={} успешно удалён", id)
-    return movie
