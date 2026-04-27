@@ -13,8 +13,8 @@ def get_repository(db=Depends(get_db)) -> SqlMoviesRepository:
 
 
 @movies.get("/movies/{id}")
-def get_movie(id: UUID, repository: SqlMoviesRepository = Depends(get_repository)):
-    movie = repository.get_by_id(id)
+async def get_movie(id: UUID, repository: SqlMoviesRepository = Depends(get_repository)):
+    movie = await repository.get_by_id(id)
 
     if movie is None:
         raise HTTPException(status_code=404, detail="Movie not found")
@@ -24,28 +24,28 @@ def get_movie(id: UUID, repository: SqlMoviesRepository = Depends(get_repository
 
 
 @movies.get("/movies")
-def get_movie_cursor(
+async def get_movie_cursor(
         limit: int = Query(default=10, ge=1, le=100),
         cursor: str | None = None,
         repository: SqlMoviesRepository = Depends(get_repository)
 ):
-    movies = repository.get_by_cursor(limit, cursor)
+    movies = await repository.get_by_cursor(limit, cursor)
 
     logger.info("Найдено {} фильмов", len(movies["movies"]))
     return movies
 
 
 @movies.post("/movies", status_code=status.HTTP_201_CREATED)
-def create_movie(movie_create: MovieCreate, repository: SqlMoviesRepository = Depends(get_repository)):
-    movie = repository.create(movie_create)
+async def create_movie(movie_create: MovieCreate, repository: SqlMoviesRepository = Depends(get_repository)):
+    movie = await repository.create(movie_create)
 
     logger.success("Фильм создан")
     return movie
 
 
 @movies.patch("/movies/{id}")
-def update_movie(id: UUID, updates: MovieUpdate, repository: SqlMoviesRepository = Depends(get_repository)):
-    movie = repository.update(id, updates)
+async def update_movie(id: UUID, updates: MovieUpdate, repository: SqlMoviesRepository = Depends(get_repository)):
+    movie = await repository.update(id, updates)
 
     if movie is None:
         raise HTTPException(status_code=404, detail="Movie not found")
@@ -55,8 +55,8 @@ def update_movie(id: UUID, updates: MovieUpdate, repository: SqlMoviesRepository
 
 
 @movies.delete("/movies/{id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_movie(id: UUID, repository: SqlMoviesRepository = Depends(get_repository)):
-    movie = repository.delete(id)
+async def delete_movie(id: UUID, repository: SqlMoviesRepository = Depends(get_repository)):
+    movie = await repository.delete(id)
 
     if movie is None:
         raise HTTPException(status_code=404, detail="Movie not found")

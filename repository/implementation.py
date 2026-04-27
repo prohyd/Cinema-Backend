@@ -2,14 +2,14 @@ from uuid import UUID
 from model.models import MovieSummary, MovieCreate, MovieUpdate, Movie
 from repository.models import MovieEntity
 from repository.interface import MoviesRepository
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, and_, or_
 from controller.pagination.cursor import decode_cursor, encode_cursor
 
 
 class SqlMoviesRepository(MoviesRepository):
 
-    def __init__(self, session: Session):
+    def __init__(self, session: AsyncSession):
         self.session = session
 
     def _to_domain(self, movie: MovieEntity) -> Movie:
@@ -30,35 +30,35 @@ class SqlMoviesRepository(MoviesRepository):
             rating=movie.rating
         )
 
-    def get_by_id(self, id: UUID):
-        movie_found = self.session.get(MovieEntity, id)
+    async def get_by_id(self, id: UUID):
+        movie_found = await self.session.get(MovieEntity, id)
 
         if movie_found:
             return self._to_domain(movie_found)
         return movie_found
 
-    def create(self, movie: MovieCreate):
+    async def create(self, movie: MovieCreate):
 
         movie_create = MovieEntity(**movie.model_dump(exclude_unset=True))
 
         self.session.add(movie_create)
-        self.session.commit()
-        self.session.refresh(movie_create)
+        await self.session.commit()
+        await self.session.refresh(movie_create)
         return self._to_domain(movie_create)
 
-    def delete(self, id: UUID):
-        movie_found = self.session.get(MovieEntity, id)
+    async def delete(self, id: UUID):
+        movie_found = await self.session.get(MovieEntity, id)
 
         if movie_found:
-            self.session.delete(movie_found)
-            self.session.commit()
+            await self.session.delete(movie_found)
+            await self.session.commit()
 
             return movie_found
 
         return movie_found
 
-    def update(self, id: UUID, updates: MovieUpdate):
-        movie_found = self.session.get(MovieEntity, id)
+    async def update(self, id: UUID, updates: MovieUpdate):
+        movie_found = await self.session.get(MovieEntity, id)
 
         if movie_found is None:
             return movie_found
@@ -68,12 +68,12 @@ class SqlMoviesRepository(MoviesRepository):
         for field, value in update_data.items():
             setattr(movie_found, field, value)
 
-        self.session.commit()
-        self.session.refresh(movie_found)
+        await self.session.commit()
+        await self.session.refresh(movie_found)
 
         return self._to_domain(movie_found)
 
-    def get_by_cursor(self, limit: int, cursor: str | None = None):
+    async def get_by_cursor(self, limit: int, cursor: str | None = None):
         sql_command = select(MovieEntity)
 
         if cursor:
@@ -96,7 +96,7 @@ class SqlMoviesRepository(MoviesRepository):
             ).limit(limit + 1)
         )
 
-        result = self.session.execute(sql_command)
+        result = await self.session.execute(sql_command)
 
         movies = []
         for movie in result.scalars().all():
